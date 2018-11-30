@@ -7,10 +7,10 @@ namespace CreditCardMask
 {
     public class CardNumberHelper
     {
-        private const char AnyCharMask = '*'; // обязательное, любой символ
-        private const char LetterCharMask = '?'; // обязательное, буква
-        private const char NumberCharMask = '0'; // обязательное, цифра
-        private const char AnyNumberMask = '9'; // не обязательное, цифра
+        private const char AnyCharMask = '*'; // mandatory, any character
+        private const char LetterCharMask = '?'; // mandatory, letter
+        private const char NumberCharMask = '0'; // mandatory, number
+        private const char AnyNumberMask = '9'; // optional, number
         private static readonly char[] _maskChars = { NumberCharMask, AnyCharMask, LetterCharMask, AnyNumberMask };
 
         private List<string> masks;
