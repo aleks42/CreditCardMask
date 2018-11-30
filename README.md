@@ -9,8 +9,8 @@ var helper = new CardNumberHelper();
 helper.Mask = "0000 0000 0000 0000";
 helper.Text = "1234123412341234";
 
-var formattedText = cardNumberHelper.FormattedText;
-var isNumberValid = cardNumberHelper.IsValid;
+var formattedText = helper.FormattedText;
+var isNumberValid = helper.IsValid;
 ```
 # Mask special characters
 
