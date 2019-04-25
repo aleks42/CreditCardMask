@@ -7,13 +7,18 @@ namespace CreditCardMask
 {
     public class CardNumberHelper
     {
-        private const char AnyCharMask = '*'; // mandatory, any character
-        private const char LetterCharMask = '?'; // mandatory, letter
-        private const char NumberCharMask = '0'; // mandatory, number
-        private const char AnyNumberMask = '9'; // optional, number
-        private static readonly char[] _maskChars = { NumberCharMask, AnyCharMask, LetterCharMask, AnyNumberMask };
+        /*
+        '0' - обязательная цифра
+        '9' - необязательная цифра
+        '?' – обязательный любой символ
+        '*' – необязательный любой символ
+        'A' – обязательная цифра или буква
+        'a' – необязательная цифра или буква
+        */
 
-        private List<string> masks;
+        private static readonly char[] _maskChars = { '0', '9', '?', '*', 'A', 'a' };
+
+        public List<string> Masks { get; private set; }
         private List<string> patterns;
         private List<string> texts;
 
@@ -27,11 +32,23 @@ namespace CreditCardMask
             set
             {
                 mask = value;
-                masks = GetMasks(mask);
+                List<string> masks;
+
+                if (string.IsNullOrEmpty(mask))
+                {
+                    masks = new List<string>();
+                }
+                else
+                {
+                    masks = new List<string> { mask };
+                    Masks = GetMasks(masks, '9', '0');
+                    Masks = GetMasks(masks, '*', '?');
+                    Masks = GetMasks(masks, 'a', 'A');
+                }
 
                 patterns = new List<string>();
-                if (masks != null)
-                    foreach (string m in masks)
+                if (Masks != null)
+                    foreach (string m in Masks)
                         patterns.Add(GetPattern(m));
 
             }
@@ -49,12 +66,12 @@ namespace CreditCardMask
                 IsValid = false;
                 FormattedText = text;
 
-                if (masks != null)
+                if (Masks != null)
                 {
-                    foreach (string m in masks)
+                    foreach (string m in Masks)
                         texts.Add(Format(text, m));
 
-                    for (int i = 0; i < masks.Count; i++)
+                    for (int i = 0; i < Masks.Count; i++)
                     {
                         if (Regex.IsMatch(texts[i], patterns[i]))
                         {
@@ -69,7 +86,7 @@ namespace CreditCardMask
                 {
                     FormattedText = texts[0];
 
-                    var maskMaxLen = masks.Max(x => x.Length);
+                    var maskMaxLen = Masks.Max(x => x.Length);
                     if (FormattedText.Length > maskMaxLen)
                         FormattedText = FormattedText.Substring(0, maskMaxLen);
                 }
@@ -88,9 +105,9 @@ namespace CreditCardMask
 
         //
 
-        private static List<string> GetMasks(string mask)
+        private static List<string> GetMasks(List<string> masks, char optional, char mandatory)
         {
-            var masks = new List<string> { mask };
+            if (masks?.Count == 0) return new List<string>();
 
             var flag = true;
             while (flag)
@@ -101,15 +118,17 @@ namespace CreditCardMask
                 {
                     for (int i1 = 0; i1 < masks[i2].Length; i1++)
                     {
-                        if (masks[i2][i1] == '9')
+                        var char1 = masks[i2][i1];
+
+                        if (char1 == optional)
                         {
-                            string left = masks[i2].Substring(0, i1);
-                            string right = masks[i2].Substring(i1, masks[i2].Length - i1 - 1);
-                            var mask1 = (left + '0' + right).Trim();
+                            var left = masks[i2].Substring(0, i1);
+                            var right = masks[i2].Substring(i1 + 1, masks[i2].Length - i1 - 1);
+                            var mask1 = (left + mandatory + right).Trim();
                             var mask2 = (left + right).Trim();
                             masks.RemoveAt(i2);
                             if (!masks.Contains(mask1)) masks.Add(mask1);
-                            if (!masks.Contains(mask2)) masks.Add(mask2);
+                            if (mask2 != "" && !masks.Contains(mask2)) masks.Add(mask2);
                             flag = true;
                             break;
                         }
@@ -152,17 +171,14 @@ namespace CreditCardMask
             {
                 switch (@char)
                 {
-                    case '*':
-                        sb1.Append(".");
-                        break;
-                    case '?':
-                        sb1.Append("[a-zA-Z]");
-                        break;
                     case '0':
                         sb1.Append("[0-9]");
                         break;
-                    case '9':
-                        sb1.Append("[0-9]?");
+                    case '?':
+                        sb1.Append(".");
+                        break;
+                    case 'A':
+                        sb1.Append("[a-zA-Z0-9]");
                         break;
                     case ' ':
                         sb1.Append("\\s");
