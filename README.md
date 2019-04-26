@@ -5,10 +5,12 @@ Includes string formatting and validation.
 # Usage
 
 ```c#
-var helper = new CardNumberHelper();
-helper.Mask = "0000 0000 0000 0000";
-helper.Text = "1234123412341234";
+var helper = new CardNumberHelper()
+{
+  Mask = "0000 0000 0000 0000",
+};
 
+helper.Text = "1234123412341234";
 var formattedText = helper.FormattedText; // 1234 1234 1234 1234
 var isNumberValid = helper.IsValid; // true
 ```
